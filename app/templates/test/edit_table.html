@@ -1,0 +1,172 @@
+
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block title %}Platform - Login{% endblock %}
+
+{% block page_content %}
+
+<div class="page-header">
+    <h1>Table</h1>
+</div>
+
+<h2> table1 </h2>
+<table data-toggle="table" id="table1">
+    <thead>
+        <tr>
+            <th>Item ID</th>
+            <th>Item Name</th>
+            <th>Item Price</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>1</td>
+            <td>Item 1</td>
+            <td>$1</td>
+        </tr>
+        <tr>
+            <td>2</td>
+            <td>Item 2</td>
+            <td>$2</td>
+        </tr>
+    </tbody>
+</table>
+
+<h2> table2 </h2>
+<table id="table2"></table>
+
+<h2> table3 </h2>
+<table id="table3"></table>
+  
+<h2> table4 </h2>
+<table data-toggle="table" data-url= {{ url_for('main.edit_table_content') }} id="table4">
+    <thead>
+        <tr>
+            <th data-field="id">Item ID</th>
+            <th data-field="name">Item Name</th>
+            <th data-field="price">Item Price</th>
+        </tr>
+    </thead>
+</table>
+
+<h2>Editable</h2>
+<div id="toolbar">
+    <button id="submit_button" class="btn btn-default">submit</button>
+    <button id="remove_json_data_button" class="btn btn-default">remove rows</button>
+    <button id="clearAll" class="btn btn-default">clearAll</button>
+</div>
+<table id="table5"
+       data-toggle="table"
+       data-pagination="true"
+       data-show-export="true"
+       data-show-refresh="true"
+       data-toolbar="#toolbar"
+       data-url="{{ url_for('static', filename='data/data1.json') }}">
+    <thead>
+    <tr>
+    	<th data-field="state" data-checkbox="true"></th>
+        <th data-field="id" data-editable="true">ID</th>
+        <th data-field="name" data-editable="true">Item Name</th>
+        <th data-field="price" data-editable="true">Item Price</th>
+    </tr>
+    </thead>
+</table>
+
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+	$(document).ready(function(){	
+		
+		$('#table2').bootstrapTable({
+		    columns: [{
+		        field: 'id',
+		        title: 'Item ID'
+		    }, {
+		        field: 'name',
+		        title: 'Item Name'
+		    }, {
+		        field: 'price',
+		        title: 'Item Price'
+		    }],
+		    data: [{
+		        id: 1,
+		        name: 'Item 1',
+		        price: '$1'
+		    }, {
+		        id: 2,
+		        name: 'Item 2',
+		        price: '$2'
+		    }]
+		});
+		
+		$('#table3').bootstrapTable({
+		    url: $SCRIPT_ROOT + '/edit_table_content',
+		    columns: [{
+		        field: 'id',
+		        title: 'Item ID'
+		    }, {
+		        field: 'name',
+		        title: 'Item Name'
+		    }, {
+		        field: 'price',
+		        title: 'Item Price'
+		    }, ]
+		});	
+		
+		var $test_table = $('#table5'),
+        	$submit_button = $('#submit_button'),
+        	$remove_json_data_button = $('#remove_json_data_button'),
+        	$clear_all_button = $('#clearAll');
+        	
+		function submit_table(to_be_submitted,tar_url){
+			var data = to_be_submitted.bootstrapTable('getData');
+			var json_data = JSON.stringify( data );
+			console.log(json_data);
+		  	$.ajax({
+		  		type:"POST",
+                url: tar_url,
+                data: { data : json_data },
+                dataType: "json",
+               	async: false,
+                success: function (data, status) {
+                    if (status == "success") {
+                        console.log("Success");
+                    }
+                },
+                error: function () {
+                    console.log("error");
+                },
+                complete: function () {
+                }
+        	});                        	
+		}	
+		
+		$submit_button.click(function () {
+             var tar_table = $('#table5');
+             var url = $SCRIPT_ROOT + '/update_table_content';
+             submit_table(tar_table,url);
+        });     
+        
+        $remove_json_data_button.click(function () {
+            var ids = $.map($test_table.bootstrapTable('getSelections'), function (json_data) {
+                return json_data.id;
+            });
+            $test_table.bootstrapTable('remove', {
+                field: 'id',
+                values: ids
+            });
+            submit_button.click();
+        }); 
+        
+        $clear_all_button.click(function () {
+            $test_table.bootstrapTable('removeAll');
+            submit_button.click();
+        });
+	});
+</script>
+{% endblock %}
+
+

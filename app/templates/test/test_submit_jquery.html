@@ -1,0 +1,37 @@
+
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block title %}Platform - Login{% endblock %}
+{% block page_content %}
+<div class="page-header">
+    <h1>form</h1>
+</div>
+<div class="col-md-4">
+	<form method="POST" action="{{ url_for('main.test_js_bind') }}" id = "test_js_bind_form" enctype="multipart/form-data">
+	{{ test_form.hidden_tag() }}
+	{{ wtf.form_field(test_form.content) }}
+	{{ wtf.form_field(test_form.submit_js) }}
+	</form>
+	<div id="placebo">
+  		<h2>Trigger the handler</h2>
+	</div>
+</div>
+
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script>
+	$(document).ready(function(){
+       	//$("#placebo").click(function(){
+	   	//	$("#test_js_bind_form").submit();
+		//});
+		{% if start_timer %}
+			startTimer(10,"/login","/");
+		{% else %}
+			alert('fuck');
+		{% endif %}
+	});
+</script>
+{% endblock %}
+

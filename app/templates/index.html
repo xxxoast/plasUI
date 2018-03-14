@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block page_content %}
+
+<div class="page-header">
+    <h1>
+    {% if current_user.is_authenticated -%}
+    Welcome {{ current_user.username }}!
+    <br><br>
+    <ol>
+	&nbsp;<li><a href="{{ url_for('auth.task') }}">Submit A New Task</a></li>
+	&nbsp;<li><a href="{{ url_for('auth.query')}}">View History Tasks</a></li>
+	</ol>
+    {% else %}
+    &nbsp;&nbsp;<a href="{{ url_for('auth.login') }}">Click here to login</a>
+    {% endif %}
+    </h1>
+</div>
+{% endblock %}
+
+
+
