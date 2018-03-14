@@ -1,0 +1,52 @@
+
+<style type="text/css">
+	#submit_task_params_button{
+	    float:right;
+	}
+	#backward3{
+	    float:right;
+	    width:90px;
+	}
+</style>
+
+<h4>
+<table data-toggle="table">
+    <thead>
+        <tr>
+            <th>username</th>
+            <th>taskname</th>
+            <th>destination</th>
+            <th>orgnazition</th>
+            <th>branch</th>
+            <th>start_date</th>
+            <th>end_date</th>
+			<th>params</th>
+			<th>submit_time</th>
+        </tr>
+    </thead>
+    </tbody>
+		<tr>
+		{% for val in task_information -%}
+			<td> {{ val }} </td>
+		{%- endfor %}
+		</tr>
+	</tbody>
+</table>
+</h4>
+
+<form method="POST" action="{{ url_for('auth.task',step = 4) }}">
+	
+    {{ task_submit_form.hidden_tag() }}
+    
+	<div class="row" >
+	<div class="col-md-1 col-md-offset-10" >
+	<h3><a id = "backward3" href={{url_for('auth.task',step = 2)}} class="btn btn-danger" role="button">返回上一步</a>
+	</div>
+	<div class="col-md-1 success" id = "submit_task_params_button">
+	<h3>{{ wtf.form_field(task_submit_form.submit_task, button_map={'submit_task':'success'}) }}</h3>
+	</div>
+	</div>
+	
+</form>
+
+

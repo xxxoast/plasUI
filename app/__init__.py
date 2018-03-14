@@ -5,6 +5,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from config import config
 from flask_uploads import UploadSet, configure_uploads, patch_request_class, TEXT, DEFAULTS, IMAGES
+from .create_user_table import Task
 
 import os,sys
 pkg_path = os.path.sep.join(
@@ -14,6 +15,7 @@ if pkg_path not in sys.path:
     sys.path.append(pkg_path)
 
 from ipcs.task import add,non_certify
+
 # print add.name,non_certify.name
 
 bootstrap = Bootstrap()
@@ -31,6 +33,11 @@ def create_rpc_client():
     rpc_client['add'] = add
     return rpc_client
 
+def create_task_client():
+    task_client = Task()
+    task_client.create_table()
+    return task_client
+    
 def create_app(config_name):
 
     app = Flask(__name__)
@@ -50,9 +57,13 @@ def create_app(config_name):
     
     configure_uploads(app, ufile)
     
+    #create rpc client
     rpc_client = create_rpc_client()
     setattr(app, 'rpc_client', rpc_client)
 
+    #create mysql client
+    task_client = create_task_client()
+    setattr(app,'task_client',task_client)
     return app
 
 xapp = create_app(os.getenv('FLASK_CONFIG') or 'default')

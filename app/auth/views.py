@@ -50,7 +50,8 @@ def inject_var():
         ret['step'] = session['step']
     if 'params' in session:
         ret['params'] = session['params']
-    print ret
+    if 'task_information' in session:
+        ret['task_information'] = session['task_information']
     return ret
 
 def init_session(cookie,force_init = False):
@@ -58,9 +59,11 @@ def init_session(cookie,force_init = False):
         cookie['last_submit_task'] = (-1, -1)   
     if force_init or ( 'step' not in cookie ):
         cookie['step'] = 1
-    if force_init or( 'params' not in cookie ) or (cookie['params'] is None):
+    if force_init or ( 'params' not in cookie ) or (cookie['params'] is None):
         cookie['params'] = {}
-    print 'session init =', cookie['last_submit_task'],cookie['step'],cookie['params']
+    if force_init or ( 'task_information' not in cookie):
+        cookie['task_information'] = ()
+#     print 'session init =', cookie['last_submit_task'],cookie['step'],cookie['params']
     
 #########################################################################
 ''' For log in '''
@@ -88,9 +91,9 @@ def logout():
 #########################################################################
 ''' Main Page: Task & Query '''
 @login_required
-@auth.route('/task', methods=['GET', 'POST'])
-@auth.route('/task/<int:step>', methods=['GET', 'POST'])
-def task():
+@auth.route('/task/', methods=['GET', 'POST'])
+@auth.route('/task/<int:step>/', methods=['GET', 'POST'])
+def task(step = None):
     #get input form data
     task_item_form,task_params_form,task_submit_form = TaskItemForm(),TaskMerchantParamsForm(),TaskSubmitForm()
     args = {}
@@ -104,12 +107,12 @@ def task():
         print 'step 3'
         session['step'] = 3
         params_data_dump(session, task_params_form)
-        params = '|'.join([ str(v) for k,v in session['params'] ])
-        tstamp = '_'.join(str(get_today()),str(get_hourminsec()))
-        task_infomation = (current_user.username,session['item'],session['destinationi'],\
+        params = '|'.join([ unicode2str_r(v) for v in session['params'].values() ])
+        tstamp = ':'.join((str(get_today()),str(get_hourminsec())))
+        task_information = (current_user.username,session['item'],session['destination'],\
                             session['organization'],session['branch'],session['start_date'],session['end_date'],\
                             params,tstamp)
-        args['task_infomation'] = task_infomation 
+        session['task_information'] = task_information
     #4 step
     elif task_submit_form.submit_task.data and task_submit_form.validate_on_submit():
         print 'step 4'
@@ -120,18 +123,21 @@ def task():
             session['last_submit_task'] = now
             session['step'] = 1
             print session['item'],session['organization'],session['params']
+            ##As a demo, we only call this module
+            new_task = current_app.rpc_client['non_certify'].delay('pingan','merchant')
+            ##Update this history in MYSQL task
+            task_record = (current_app.user_name,)
+            current_app.task_client
             #current_app.rpc_client[session['item']].delay(session['organization'],*session['params'])
             return redirect(url_for('main.index'))
     #1 step    
     else:
         print 'step 1'
         try:
-            step = request.args.get('step')
             if step is not None:
                 session['step'] = step
         except:
             session['step'] = 1
-    
     #inject form as params
     args['task_item_form'],args['task_params_form'],args['task_submit_form'] = \
                     task_item_form,task_params_form,task_submit_form      

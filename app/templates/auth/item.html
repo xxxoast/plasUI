@@ -5,24 +5,24 @@
 	}
 </style>
 
-<form method="POST" action="{{ url_for('auth.task') }}">
+<form method="POST" action="{{ url_for('auth.task',index = 2) }}">
 	
     {{ task_item_form.hidden_tag() }}
     
     
     <div class="row">
-    <div class="col-md-4"><h2>{{ wtf.form_field(task_item_form.item) }}</h2></div>
-	<div class="col-md-4"><h2>{{ wtf.form_field(task_item_form.start_date) }}</h2></div>
-	<div class="col-md-4"><h2>{{ wtf.form_field(task_item_form.end_date) }}</h2></div>
+    <div class="col-md-4"><h3>{{ wtf.form_field(task_item_form.item) }}</h3></div>
+	<div class="col-md-4"><h3>{{ wtf.form_field(task_item_form.start_date) }}</h3></div>
+	<div class="col-md-4"><h3>{{ wtf.form_field(task_item_form.end_date) }}</h3></div>
 	</div>
 	
 	<div class="row">
-	<div class="col-md-4"><h2><h3>{{ wtf.form_field(task_item_form.destination) }}</h3></div>
-	<div class="col-md-4"><h2><h3>{{ wtf.form_field(task_item_form.organization) }}</h3></div>
-	<div class="col-md-4"><h2><h3>{{ wtf.form_field(task_item_form.branch) }}</h3></div>
+	<div class="col-md-4"><h3>{{ wtf.form_field(task_item_form.destination) }}</h3></div>
+	<div class="col-md-4"><h3>{{ wtf.form_field(task_item_form.organization) }}</h3></div>
+	<div class="col-md-4"><h3>{{ wtf.form_field(task_item_form.branch) }}</h3></div>
 	</div>
 	
-	<div class="col-md-1 success" id = "submit_task_item_button">
+	<div class="col-md-1 col-md-offset-9 success" id = "submit_task_item_button">
 	<h3>{{ wtf.form_field(task_item_form.submit_task_item, button_map={'submit_task_item':'success'}) }}</h3>
 	</div>
 	

@@ -1,15 +1,29 @@
 
-<form method="POST" action="{{ url_for('auth.task') }}">
+<style type="text/css">
+	#submit_task_params_button{
+	    float:right;
+	}
+	#backward2{
+	    float:right;
+	    width:90px;
+	}
+</style>
+
+<form method="POST" action="{{ url_for('auth.task',step = 3) }}">
 	
     {{ task_params_form.hidden_tag() }}
     
     <div class="row" >
-	<div class="col-md-4"><h2>{{ task_params_form.param1.label }} {{ task_params_form.param1.data }}</h2></div>
+	<div class="col-md-4"><h2>{{ wtf.form_field(task_params_form.param1,form_type = 'vertical') }}</h2></div>
 	</div>
-
 	
+	<div class="row" >
+	<div class="col-md-1 col-md-offset-10" >
+	<h3><a id = "backward2" href={{url_for('auth.task',step = 1)}} class="btn btn-danger" role="button">返回上一步</a>
+	</div>
 	<div class="col-md-1 success" id = "submit_task_params_button">
 	<h3>{{ wtf.form_field(task_params_form.submit_task_params, button_map={'submit_task_params':'success'}) }}</h3>
+	</div>
 	</div>
 	
 </form>
