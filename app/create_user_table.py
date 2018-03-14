@@ -1,9 +1,5 @@
 from werkzeug.security import generate_password_hash, check_password_hash
 
-import sys
-if '../../' not in sys.path:
-    sys.path.append('../../')
-
 from future_mysql import dbBase
 from sqlalchemy import Column, Integer, String, DateTime, Numeric, Index, Float, Boolean
 from sqlalchemy import Table
@@ -62,5 +58,5 @@ def create_task_table():
     print 'successed!'
     
 if __name__ == '__main__':
-    create_task_table()
+    pass
     

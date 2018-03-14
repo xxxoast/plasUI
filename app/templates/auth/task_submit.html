@@ -13,15 +13,15 @@
 <table data-toggle="table">
     <thead>
         <tr>
-            <th>username</th>
-            <th>taskname</th>
-            <th>destination</th>
-            <th>orgnazition</th>
-            <th>branch</th>
-            <th>start_date</th>
-            <th>end_date</th>
-			<th>params</th>
-			<th>submit_time</th>
+            <th>姓名</th>
+            <th>检查任务</th>
+            <th>检查地区</th>
+            <th>检查机构</th>
+            <th>检查层级</th>
+            <th>起始日期</th>
+            <th>结束日期</th>
+			<th>参数</th>
+			<th>提交时间</th>
         </tr>
     </thead>
     </tbody>
@@ -34,7 +34,7 @@
 </table>
 </h4>
 
-<form method="POST" action="{{ url_for('auth.task',step = 4) }}">
+<form method="POST" action="{{ url_for('auth.task',step = 1) }}">
 	
     {{ task_submit_form.hidden_tag() }}
     

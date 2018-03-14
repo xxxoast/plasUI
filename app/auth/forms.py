@@ -36,6 +36,8 @@ class TaskMerchantParamsForm(FlaskForm):
     
     param1  = SelectField(u'参数1：检查维度',choices = [('merchant',(u'商户')),('trade',(u'交易明细'))],\
                                  default = 'merchant')
+    param2  = SelectField(u'参数2：交易金额临界值',choices = [('10000',(u'1万元')),('100000',(u'10万元'))],\
+                                 default = '100000')
     submit_task_params = SubmitField(u'下一步')
     
 class TaskSubmitForm(FlaskForm):

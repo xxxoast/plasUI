@@ -1,5 +1,11 @@
-import os
+
 from flask_uploads import DEFAULTS, TEXT
+import os,sys
+pkg_path = os.path.sep.join(
+    (os.path.abspath(os.curdir).split(os.path.sep)[:-1]))
+if pkg_path not in sys.path:
+    sys.path.append(pkg_path)
+
 basedir = os.path.abspath(os.path.dirname(__file__))
 db_name = 'flask'
 

@@ -5,8 +5,6 @@ from .forms import UploadForm, RuleForm, ResetRules, JsBindBubmit, RadioBoxForm
 import os
 import json
 
-
-
 @main.route('/')
 def index():
     return render_template('index.html')

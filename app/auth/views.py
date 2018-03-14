@@ -39,7 +39,9 @@ def item_data_dump(cookie,input_form):
 #self definition here            
 def params_data_dump(cookie,input_form):
     param1 = input_form.param1.data
+    param2 = input_form.param1.data
     cookie['params']['param1'] = param1 
+    cookie['params']['param2'] = param2 
     
 #########################################################################
 ''' Inject vars '''
@@ -124,12 +126,24 @@ def task(step = None):
             session['step'] = 1
             print session['item'],session['organization'],session['params']
             ##As a demo, we only call this module
-            new_task = current_app.rpc_client['non_certify'].delay('pingan','merchant')
+            #new_task = current_app.rpc_client[session['item']].delay(session['organization'],*session['params'])
+            #new_task = current_app.rpc_client['non_certify'].delay('pingan','merchant')
             ##Update this history in MYSQL task
-            task_record = (current_app.user_name,)
-            current_app.task_client
-            #current_app.rpc_client[session['item']].delay(session['organization'],*session['params'])
-            return redirect(url_for('main.index'))
+            user_name = current_user.username
+            user = User.query.filter_by(username=user_name).first()
+            from_unit = user.work_unit
+            task_name = session['item']
+            #task_id   = new_task.id
+            import uuid
+            task_id = repr(uuid.uuid1())
+            submit_date = now[0]
+            submit_time = now[1]
+            task_record = (user_name,from_unit,task_name,task_id,submit_date,submit_time)
+            print task_record
+            task_client = current_app.task_client
+            #task_client.insert_listlike(task_client.table_struct, task_record, merge=False)
+            ##############################################################################
+            return redirect(url_for('auth.submit_successed'))
     #1 step    
     else:
         print 'step 1'
@@ -151,7 +165,10 @@ def query():
     return render_template('auth/query.html', **args)
 
 
-
+@login_required
+@auth.route('/submit_successed', methods=['GET', 'POST'])
+def submit_successed():
+    return render_template('auth/submit_successed.html')
 
 
 
