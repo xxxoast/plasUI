@@ -171,6 +171,14 @@ def query():
 @login_required
 @auth.route('/submit_successed', methods=['GET', 'POST'])
 def submit_successed():
+    task_client = current_app.task_client
+    user_name = current_user.username
+    cursor = task_client.query_obj(task.task_struct,username = user_name)
+    cols = task_client.get_column_names(task_client.task_struct)
+    print cols
+    for record in cursor:
+        task_id = record['task_id']
+        fileds = [ getattr(record,x) for x in cols ]
     return render_template('auth/submit_successed.html')
 
 

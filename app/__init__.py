@@ -15,6 +15,7 @@ if pkg_path not in sys.path:
     sys.path.append(pkg_path)
 
 from ipcs.task import add,non_certify
+from ipcs.redis
 
 # print add.name,non_certify.name
 
