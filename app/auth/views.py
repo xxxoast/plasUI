@@ -1,3 +1,4 @@
+#coding:utf-8 
 from flask import render_template, redirect, request, url_for, flash, session, g, current_app, jsonify
 from flask_login import login_user, logout_user, login_required, current_user, fresh_login_required
 from . import auth
@@ -45,18 +46,22 @@ def params_data_dump(cookie,input_form):
 @auth.context_processor
 def inject_var():
     ret = {}
-    ret['step'] = session['step']
-    ret['params'] = session['params']
+    if 'step' in session:
+        ret['step'] = session['step']
+    if 'params' in session:
+        ret['params'] = session['params']
+    print ret
     return ret
 
-def init_session(cookie):
-    if 'last_submit_task' not in cookie:
+def init_session(cookie,force_init = False):
+    if force_init or ( 'last_submit_task' not in cookie ):
         cookie['last_submit_task'] = (-1, -1)   
-    if 'step' not in cookie:
+    if force_init or ( 'step' not in cookie ):
         cookie['step'] = 1
-    if 'params' not in cookie:
+    if force_init or( 'params' not in cookie ) or (cookie['params'] is None):
         cookie['params'] = {}
-
+    print 'session init =', cookie['last_submit_task'],cookie['step'],cookie['params']
+    
 #########################################################################
 ''' For log in '''
 
@@ -67,6 +72,7 @@ def login():
         user = User.query.filter_by(username=form.username.data).first()
         if user is not None and user.verify_password(form.password.data):
             login_user(user, False)
+            init_session(session,False)
             return redirect(url_for('main.index'))
         flash('Invalid username or password.')
     return render_template('auth/login.html', form=form)
@@ -85,16 +91,17 @@ def logout():
 @auth.route('/task', methods=['GET', 'POST'])
 @auth.route('/task/<int:step>', methods=['GET', 'POST'])
 def task():
-    init_session(session,True)
     #get input form data
     task_item_form,task_params_form,task_submit_form = TaskItemForm(),TaskMerchantParamsForm(),TaskSubmitForm()
     args = {}
     #2 step        
     if task_item_form.submit_task_item.data and task_item_form.validate_on_submit():
+        print 'step 2'
         session['step'] = 2
         item_data_dump(session,task_item_form)
     #3 step
     elif task_params_form.submit_task_params.data and task_params_form.validate_on_submit():
+        print 'step 3'
         session['step'] = 3
         params_data_dump(session, task_params_form)
         params = '|'.join([ str(v) for k,v in session['params'] ])
@@ -105,10 +112,10 @@ def task():
         args['task_infomation'] = task_infomation 
     #4 step
     elif task_submit_form.submit_task.data and task_submit_form.validate_on_submit():
+        print 'step 4'
         now = (get_today(), get_hourminsec())
         if submit_over_frequency(session['last_submit_task'],now):
-            flash('warning! take a rest~~'.format(min_backtest_gap_seconds))
-            return redirect(url_for('auth.task'))  
+            flash('warning! take a rest~~'.format(min_backtest_gap_seconds)) 
         else:
             session['last_submit_task'] = now
             session['step'] = 1
@@ -117,9 +124,11 @@ def task():
             return redirect(url_for('main.index'))
     #1 step    
     else:
+        print 'step 1'
         try:
             step = request.args.get('step')
-            session['step'] = step
+            if step is not None:
+                session['step'] = step
         except:
             session['step'] = 1
     
@@ -132,7 +141,8 @@ def task():
 @login_required
 @auth.route('/query', methods=['GET', 'POST'])
 def query():
-    pass
+    args = {}
+    return render_template('auth/query.html', **args)
 
 
 

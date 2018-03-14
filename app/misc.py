@@ -1,8 +1,8 @@
-
+#coding:utf-8 
 import time
 from pandas import to_datetime
 
-unicode2utf8 = lambda x: x.encode('utf8') if isinstance(x,unicode) else x
+unicode2utf8 = lambda x: x.encode('utf-8') if isinstance(x,unicode) else x
 unicode2cp936 = lambda x: x.encode('cp936') if isinstance(x,unicode) else x
 
 def diff_seconds(now, last):

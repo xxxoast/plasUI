@@ -1,21 +1,25 @@
 
+<style type="text/css">
+	#submit_task_item_button{
+	    float:right;
+	}
+</style>
+
 <form method="POST" action="{{ url_for('auth.task') }}">
 	
     {{ task_item_form.hidden_tag() }}
     
-    <div class="row" >
-	<div class="col-md-4"><h2>{{ task_item_form.item.label }} {{ task_item_form.item.data }}</h2></div>
-	</div>
     
     <div class="row">
-	<h3>{{ wtf.form_field(task_item_form.start_date,form_type = 'horizontal') }}</h3>
-	<h3>{{ wtf.form_field(task_item_form.end_date,form_type = 'horizontal') }}</h3>
+    <div class="col-md-4"><h2>{{ wtf.form_field(task_item_form.item) }}</h2></div>
+	<div class="col-md-4"><h2>{{ wtf.form_field(task_item_form.start_date) }}</h2></div>
+	<div class="col-md-4"><h2>{{ wtf.form_field(task_item_form.end_date) }}</h2></div>
 	</div>
 	
 	<div class="row">
-	<h4>{{ wtf.form_field(task_item_form.destination,form_type = 'horizontal') }}</h4>
-	<h4>{{ wtf.form_field(task_item_form.organization,form_type = 'horizontal') }}</h4>
-	<h4>{{ wtf.form_field(task_item_form.branch,form_type = 'horizontal') }}</h4>
+	<div class="col-md-4"><h2><h3>{{ wtf.form_field(task_item_form.destination) }}</h3></div>
+	<div class="col-md-4"><h2><h3>{{ wtf.form_field(task_item_form.organization) }}</h3></div>
+	<div class="col-md-4"><h2><h3>{{ wtf.form_field(task_item_form.branch) }}</h3></div>
 	</div>
 	
 	<div class="col-md-1 success" id = "submit_task_item_button">
