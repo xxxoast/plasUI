@@ -1,5 +1,10 @@
 from werkzeug.security import generate_password_hash, check_password_hash
 
+import os,sys
+pkg_path = os.path.sep.join(
+    (os.path.abspath(os.curdir).split(os.path.sep)[:-2]))
+if pkg_path not in sys.path:
+    sys.path.append(pkg_path)
 from future_mysql import dbBase
 from sqlalchemy import Column, Integer, String, DateTime, Numeric, Index, Float, Boolean
 from sqlalchemy import Table
@@ -28,17 +33,18 @@ class Task(dbBase.DB_BASE):
         super(Task, self).__init__(db_name)
 
         self.table_struct = Table(table_name, self.meta,
-                                  Column('username', String(64),primary_key=True,),
+                                  Column('username', String(64)),
                                   Column('task_from', String(64)),
                                   Column('task_to',String(64)),
                                   Column('task_name',String(64)),
-                                  Column('task_id',String(128)),
+                                  Column('task_id',String(128),primary_key=True),
+                                  Column('orgnizition',String(128)),
                                   Column('submit_date',Integer),
                                   Column('submit_time',Integer)
                                   )
 
     def create_table(self):
-        self.user_struct = self.quick_map(self.table_struct)
+        self.task_struct = self.quick_map(self.table_struct)
 
 def create_user_table():
     user = User()
@@ -58,5 +64,5 @@ def create_task_table():
     print 'successed!'
     
 if __name__ == '__main__':
-    pass
+    create_task_table()
     

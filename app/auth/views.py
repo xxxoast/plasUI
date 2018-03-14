@@ -127,21 +127,24 @@ def task(step = None):
             print session['item'],session['organization'],session['params']
             ##As a demo, we only call this module
             #new_task = current_app.rpc_client[session['item']].delay(session['organization'],*session['params'])
-            #new_task = current_app.rpc_client['non_certify'].delay('pingan','merchant')
+            new_task = current_app.rpc_client['non_certify'].delay('pingan','merchant')
+            print new_task.ready()
             ##Update this history in MYSQL task
             user_name = current_user.username
             user = User.query.filter_by(username=user_name).first()
             from_unit = user.work_unit
+            to_unit   = session['destination']
             task_name = session['item']
-            #task_id   = new_task.id
-            import uuid
-            task_id = repr(uuid.uuid1())
+            organization = session['organization']
+            task_id   = new_task.id
+#             import uuid
+#             task_id = repr(uuid.uuid1())
             submit_date = now[0]
             submit_time = now[1]
-            task_record = (user_name,from_unit,task_name,task_id,submit_date,submit_time)
+            task_record = (user_name,from_unit,to_unit,task_name,task_id,organization,submit_date,submit_time)
             print task_record
             task_client = current_app.task_client
-            #task_client.insert_listlike(task_client.table_struct, task_record, merge=False)
+            task_client.insert_listlike(task_client.task_struct, task_record, merge=False)
             ##############################################################################
             return redirect(url_for('auth.submit_successed'))
     #1 step    

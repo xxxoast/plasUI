@@ -6,6 +6,10 @@
 	#successed{
 	    color: 	#7B68EE;
 	}
+	#timeout{
+		 color: red;
+		 display: inline 
+	}
 </style>
 
 <div class="page-header">
@@ -16,7 +20,7 @@
 		</script>
 
     	<div class="row" id = "successed">
-		<h2><a href="{{ url_for('auth.query') }}">已成功提交任务，请点此查看任务执行情况，<div id = "timeout"></div>秒后自动跳转</a></h2>
+		<h2><a href="{{ url_for('auth.query') }}">已成功提交任务，请点此查看任务执行情况，<div id = "timeout" style="clear:both">5</div>秒后自动跳转</a></h2>
 		</div>
 		
     {% endif %}
@@ -29,8 +33,24 @@
 {{ super() }}
 <script>
 
+function setTimerCounter(seconds){
+	$("#timeout").text(seconds);
+}
+
+function startTimer(duration) {
+	    var exp_timer = duration;
+	    var refresh = setInterval(function () {
+		    setTimerCounter((parseInt(exp_timer)));
+		    console.log("exp_timer : " + exp_timer );
+	        if (--exp_timer < 0) {
+	            clearInterval(refresh);
+	            window.location.href = "{{url_for('auth.query')}}";
+	        }
+	    }, 1000);
+	};
+	
 $(document).ready(function(){	
-		
+	startTimer(5);
 });
 
 </script>
