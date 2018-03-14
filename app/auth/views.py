@@ -8,6 +8,7 @@ from .. import ufile
 from ..misc import get_today, get_hourminsec, unicode2str_r,diff_seconds
 import os
 import json
+import time
 
 min_backtest_gap_seconds = 10
 
@@ -24,9 +25,21 @@ def submit_over_frequency(last_submit,now):
 def web_data_to_server_data(web_data):
     pass
 
-def web_data_dump(input_form):
-    pass
+def item_data_dump(cookie,input_form):
+    start_date, end_date = input_form.start_date.data, input_form.end_date.data
+    item = input_form.item.data
+    destination = input_form.destination.data
+    organization = input_form.organization.data
+    branch = input_form.branch.data
+    cookie['start_date'],cookie['end_date'],cookie['item'],\
+        cookie['destination'],cookie['organization'],cookie['branch'] = start_date, end_date, item, \
+            destination, organization,branch
 
+#self definition here            
+def params_data_dump(cookie,input_form):
+    param1 = input_form.param1.data
+    cookie['params']['param1'] = param1 
+    
 #########################################################################
 ''' Inject vars '''
 @auth.context_processor
@@ -75,22 +88,34 @@ def task():
     init_session(session,True)
     #get input form data
     task_item_form,task_params_form,task_submit_form = TaskItemForm(),TaskMerchantParamsForm(),TaskSubmitForm()
-    #second step
-    if task_params_form.submit_task_params.data and task_params_form.validate_on_submit():
+    args = {}
+    #2 step        
+    if task_item_form.submit_task_item.data and task_item_form.validate_on_submit():
+        session['step'] = 2
+        item_data_dump(session,task_item_form)
+    #3 step
+    elif task_params_form.submit_task_params.data and task_params_form.validate_on_submit():
+        session['step'] = 3
+        params_data_dump(session, task_params_form)
+        params = '|'.join([ str(v) for k,v in session['params'] ])
+        tstamp = '_'.join(str(get_today()),str(get_hourminsec()))
+        task_infomation = (current_user.username,session['item'],session['destinationi'],\
+                            session['organization'],session['branch'],session['start_date'],session['end_date'],\
+                            params,tstamp)
+        args['task_infomation'] = task_infomation 
+    #4 step
+    elif task_submit_form.submit_task.data and task_submit_form.validate_on_submit():
         now = (get_today(), get_hourminsec())
         if submit_over_frequency(session['last_submit_task'],now):
             flash('warning! take a rest~~'.format(min_backtest_gap_seconds))
-            return redirect(url_for('auth.fill'))  
+            return redirect(url_for('auth.task'))  
         else:
             session['last_submit_task'] = now
-            session['step'] = 3    
-    #third step        
-    elif task_item_form.submit_task_item.data and task_item_form.validate_on_submit():
-        session['step'] = 2
-    #fourth step
-    elif task_submit_form.submit_task.data and task_submit_form.validate_on_submit():
-        return redirect(url_for('main.index'))
-    #first step    
+            session['step'] = 1
+            print session['item'],session['organization'],session['params']
+            #current_app.rpc_client[session['item']].delay(session['organization'],*session['params'])
+            return redirect(url_for('main.index'))
+    #1 step    
     else:
         try:
             step = request.args.get('step')
@@ -99,7 +124,6 @@ def task():
             session['step'] = 1
     
     #inject form as params
-    args = {}
     args['task_item_form'],args['task_params_form'],args['task_submit_form'] = \
                     task_item_form,task_params_form,task_submit_form      
     return render_template('auth/task.html', **args)

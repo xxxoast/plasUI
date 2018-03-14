@@ -1,0 +1,27 @@
+
+<form method="POST" action="{{ url_for('auth.task') }}">
+	
+    {{ task_item_form.hidden_tag() }}
+    
+    <div class="row" >
+	<div class="col-md-4"><h2>{{ task_item_form.item.label }} {{ task_item_form.item.data }}</h2></div>
+	</div>
+    
+    <div class="row">
+	<h3>{{ wtf.form_field(task_item_form.start_date,form_type = 'horizontal') }}</h3>
+	<h3>{{ wtf.form_field(task_item_form.end_date,form_type = 'horizontal') }}</h3>
+	</div>
+	
+	<div class="row">
+	<h4>{{ wtf.form_field(task_item_form.destination,form_type = 'horizontal') }}</h4>
+	<h4>{{ wtf.form_field(task_item_form.organization,form_type = 'horizontal') }}</h4>
+	<h4>{{ wtf.form_field(task_item_form.branch,form_type = 'horizontal') }}</h4>
+	</div>
+	
+	<div class="col-md-1 success" id = "submit_task_item_button">
+	<h3>{{ wtf.form_field(task_item_form.submit_task_item, button_map={'submit_task_item':'success'}) }}</h3>
+	</div>
+	
+</form>
+
+

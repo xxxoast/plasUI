@@ -28,7 +28,7 @@ class TaskItemForm(FlaskForm):
                                 render_kw={'placeholder': '20180101'},default=20180101) 
     organization = SelectField('organization',choices = [('minsheng_b','民生银行'),('alipay_p','支付宝'),('unionpay_p','银联商务')],\
                                  default = 'minsheng_b')
-    branc    = SelectField('organization',choices = [('super','法人'),('branch','分支机构')],\
+    branch    = SelectField('branch',choices = [('super','法人'),('branch','分支机构')],\
                                  default = 'super')
     submit_task_item = SubmitField('Next Step')
 

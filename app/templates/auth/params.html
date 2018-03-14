@@ -1,0 +1,17 @@
+
+<form method="POST" action="{{ url_for('auth.task') }}">
+	
+    {{ task_params_form.hidden_tag() }}
+    
+    <div class="row" >
+	<div class="col-md-4"><h2>{{ task_params_form.param1.label }} {{ task_params_form.param1.data }}</h2></div>
+	</div>
+
+	
+	<div class="col-md-1 success" id = "submit_task_params_button">
+	<h3>{{ wtf.form_field(task_params_form.submit_task_params, button_map={'submit_task_params':'success'}) }}</h3>
+	</div>
+	
+</form>
+
+
