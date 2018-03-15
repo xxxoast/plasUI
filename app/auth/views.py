@@ -134,7 +134,6 @@ def task(step = None):
         item_data_dump(session,task_item_form)
         task_params_form = module2form[session['item']]()
         init_session_params(session,task_params_form)
-        print 'params = ', len(session['param_vals'])
     #3 step
     elif task_params_form.submit_task_params.data and task_params_form.validate_on_submit():
         print 'step 3'
@@ -155,11 +154,9 @@ def task(step = None):
         else:
             session['last_submit_task'] = now
             session['step'] = 1
-            print session['item'],session['organization'],session['params']
             ##As a demo, we only call this module
             #new_task = current_app.rpc_client[session['item']].delay(session['organization'],*session['params'])
             new_task = current_app.rpc_client['non_certify'].delay('pingan','merchant')
-            print new_task.ready()
             ##Update this history in MYSQL task
             user_name = current_user.username
             user = User.query.filter_by(username=user_name).first()
