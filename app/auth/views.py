@@ -5,7 +5,7 @@ from sqlalchemy import desc
 from . import auth
 from .. import db
 from ..models import User
-from .forms import LoginForm,TaskItemForm,TaskMerchantParamsForm,TaskSubmitForm
+from .forms import module2form,LoginForm,TaskItemForm,TaskMerchantParamsForm,TaskSubmitForm
 from .. import ufile
 from ..misc import get_today, get_hourminsec, unicode2str_r,diff_seconds,timeint2str
 import os
@@ -37,13 +37,31 @@ def item_data_dump(cookie,input_form):
         cookie['destination'],cookie['organization'],cookie['branch'] = start_date, end_date, item, \
             destination, organization,branch
 
+def init_session_params(cookie,task_params_form):
+    if cookie['item'] == 'merchant':
+        session['param_vals'] = [ task_params_form.param1,  task_params_form.param2]
+    elif cookie['item'] == 'reserve':
+        session['param_vals'] = [ task_params_form.param1,  ]
+    elif cookie['item'] == 'data_request':
+        session['param_vals'] = [ task_params_form.param1,  ]
+        
 #self definition here            
 def params_data_dump(cookie,input_form):
-    param1 = input_form.param1.data
-    param2 = input_form.param1.data
-    cookie['params']['param1'] = param1 
-    cookie['params']['param2'] = param2 
-    
+    if cookie['item'] == 'merchant':
+        param1 = input_form.param1.data
+        param2 = input_form.param1.data
+        cookie['params'] = {}
+        cookie['params']['param1'] = param1 
+        cookie['params']['param2'] = param2 
+    elif cookie['item'] == 'reserve':
+        param1 = input_form.param1.data
+        cookie['params'] = {}
+        cookie['params']['param1'] = param1
+    elif cookie['item'] == 'data_request':
+        param1 = input_form.param1.data
+        cookie['params'] = {}
+        cookie['params']['param1'] = param1
+        
 #########################################################################
 ''' Inject vars '''
 @auth.context_processor
@@ -55,6 +73,8 @@ def inject_var():
         ret['params'] = session['params']
     if 'task_information' in session:
         ret['task_information'] = session['task_information']
+    if 'param_vals' in session:
+        ret['param_vals'] = session['param_vals']
     return ret
 
 def init_session(cookie,force_init = False):
@@ -66,6 +86,8 @@ def init_session(cookie,force_init = False):
         cookie['params'] = {}
     if force_init or ( 'task_information' not in cookie):
         cookie['task_information'] = ()
+    if force_init or ('param_vals' not in cookie):
+        cookie['param_vals'] = ()
 #     print 'session init =', cookie['last_submit_task'],cookie['step'],cookie['params']
     
 #########################################################################
@@ -98,13 +120,21 @@ def logout():
 @auth.route('/task/<int:step>/', methods=['GET', 'POST'])
 def task(step = None):
     #get input form data
-    task_item_form,task_params_form,task_submit_form = TaskItemForm(),TaskMerchantParamsForm(),TaskSubmitForm()
+    task_item_form,task_submit_form = TaskItemForm(),TaskSubmitForm()
+    try:
+        print 'mode = ', session['item']
+        task_params_form = module2form[session['item']]()
+    except:
+        task_params_form = TaskMerchantParamsForm()
     args = {}
     #2 step        
     if task_item_form.submit_task_item.data and task_item_form.validate_on_submit():
         print 'step 2'
         session['step'] = 2
         item_data_dump(session,task_item_form)
+        task_params_form = module2form[session['item']]()
+        init_session_params(session,task_params_form)
+        print 'params = ', len(session['param_vals'])
     #3 step
     elif task_params_form.submit_task_params.data and task_params_form.validate_on_submit():
         print 'step 3'

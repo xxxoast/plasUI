@@ -1,6 +1,17 @@
 #coding:utf-8 
 import time
 from pandas import to_datetime
+import socket
+
+def get_host_ip():
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(('8.8.8.8', 80))
+        ip = s.getsockname()[0]
+    finally:
+        s.close()
+
+    return ip
 
 unicode2utf8 = lambda x: x.encode('utf-8') if isinstance(x,unicode) else x
 unicode2cp936 = lambda x: x.encode('cp936') if isinstance(x,unicode) else x

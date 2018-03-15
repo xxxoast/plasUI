@@ -17,7 +17,10 @@ class LoginForm(FlaskForm):
 
 class TaskItemForm(FlaskForm):
     
-    item  = SelectField(u'检查模块',choices = [('merchant',u'收单商户二清'),('personal_account_classify',u'个人结算账户分类')],\
+    item  = SelectField(u'检查模块',choices = [('merchant',u'收单商户二清'),\
+                                             ('reserve',u'备付金出入金'),\
+                                             ('diff_data',u'数据比对'),\
+                                             ('data_request',u'数据请求')],\
                                  default = 'merchant')
     destination = SelectField(u'检查地区',choices = [('beijing',u'北京'),('shanghai',(u'上海')),('shenzhen',(u'深圳'))],\
                                  default = 'beijing')
@@ -39,6 +42,30 @@ class TaskMerchantParamsForm(FlaskForm):
                                  default = '100000')
     submit_task_params = SubmitField(u'下一步')
     
+class TaskReserveParamsForm(FlaskForm):
+    
+    param1  = SelectField(u'参数1：检查项目',choices = [('ratio',(u'缴存比例')),\
+                                                  ('account',(u'账户开立')),\
+                                                  ('in_and_out',(u'出入金规范'))],\
+                                 default = 'ratio')
+
+    submit_task_params = SubmitField(u'下一步')
+
+class TaskDataRequestParamsForm(FlaskForm):
+    
+    param1  = SelectField(u'参数1：数据内容',choices = [('merchant',(u'商户信息')),\
+                                                    ('trade',(u'交易流水')),\
+                                                    ('account',(u'支付账户'))],\
+                                 default = 'merchant')
+
+    submit_task_params = SubmitField(u'下一步')
+    
 class TaskSubmitForm(FlaskForm):
     
     submit_task = SubmitField(u'提交') 
+    
+###################################################
+module2form = {}
+module2form['merchant'] = TaskMerchantParamsForm
+module2form['reserve'] = TaskReserveParamsForm
+module2form['data_request'] = TaskDataRequestParamsForm

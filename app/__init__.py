@@ -16,6 +16,7 @@ if pkg_path not in sys.path:
 
 from ipcs.task import add,non_certify
 from ipcs.redis_api import get_remote_handler,get_local_handler
+from misc import get_host_ip
 
 # print add.name,non_certify.name
 
@@ -68,7 +69,11 @@ def create_app(config_name):
     setattr(app,'task_client',task_client)
     
     #create redis client
-    redis_client = get_local_handler()
+    if get_host_ip() == '120.24.189.82':
+        redis_client = get_remote_handler()
+    else:
+        redis_client = get_local_handler()
+
     setattr(app,'redis_client',redis_client)
     return app
 
