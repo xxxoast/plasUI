@@ -7,7 +7,6 @@ from wtforms.validators import Required, Length, Email, Regexp, EqualTo
 from wtforms import ValidationError
 from ..models import User
 from .. import ufile
-from docutils.nodes import organization
 from ..misc import unicode2utf8
 
 class LoginForm(FlaskForm):

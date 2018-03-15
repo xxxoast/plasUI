@@ -1,6 +1,7 @@
 #coding:utf-8 
 from flask import render_template, redirect, request, url_for, flash, session, g, current_app, jsonify
 from flask_login import login_user, logout_user, login_required, current_user, fresh_login_required
+from sqlalchemy import desc
 from . import auth
 from .. import db
 from ..models import User
@@ -176,8 +177,8 @@ def query():
     user_name = current_user.username
     ss = task_client.get_session()
     cursor = ss.query(task_client.task_struct).filter_by(username = user_name)\
-                                                .order_by(task_client.task_struct.submit_date)\
-                                                .order_by(task_client.task_struct.submit_time)\
+                                                .order_by(desc(task_client.task_struct.submit_date))\
+                                                .order_by(desc(task_client.task_struct.submit_time))\
                                                 .all()
     ss.close()
     tbvals = []
