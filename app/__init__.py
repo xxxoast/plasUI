@@ -15,7 +15,7 @@ if pkg_path not in sys.path:
     sys.path.append(pkg_path)
 
 from ipcs.task import add,non_certify
-from ipcs.redis
+from ipcs.redis_api import get_remote_handler,get_local_handler
 
 # print add.name,non_certify.name
 
@@ -64,7 +64,12 @@ def create_app(config_name):
 
     #create mysql client
     task_client = create_task_client()
+    setattr(app,'task_column_names',task_client.get_column_names(task_client.task_struct))
     setattr(app,'task_client',task_client)
+    
+    #create redis client
+    redis_client = get_local_handler()
+    setattr(app,'redis_client',redis_client)
     return app
 
 xapp = create_app(os.getenv('FLASK_CONFIG') or 'default')

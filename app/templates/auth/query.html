@@ -9,8 +9,7 @@
 <div class="page-header">
     <h1>
     {% if current_user.is_authenticated -%}    	
-	        
-			
+	        {% include "auth/history_tasks.html" with context %}
     {% endif %}
     </h1>
 </div>

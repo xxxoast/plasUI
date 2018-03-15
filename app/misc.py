@@ -5,6 +5,11 @@ from pandas import to_datetime
 unicode2utf8 = lambda x: x.encode('utf-8') if isinstance(x,unicode) else x
 unicode2cp936 = lambda x: x.encode('cp936') if isinstance(x,unicode) else x
 
+def timeint2str(inttime):
+    inttime = inttime if isinstance(inttime,int) else int(inttime)
+    hour,min,sec = inttime/10000,(inttime%10000)/100,inttime%100
+    return ':'.join((str(hour),str(min),str(sec)))
+
 def diff_seconds(now, last):
     #format [date,second]
     if last[0] == -1 or last[1] == -1:

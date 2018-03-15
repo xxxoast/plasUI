@@ -39,6 +39,7 @@ class Task(dbBase.DB_BASE):
                                   Column('task_name',String(64)),
                                   Column('task_id',String(128),primary_key=True),
                                   Column('orgnizition',String(128)),
+                                  Column('level',String(16)),
                                   Column('submit_date',Integer),
                                   Column('submit_time',Integer)
                                   )

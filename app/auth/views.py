@@ -6,7 +6,7 @@ from .. import db
 from ..models import User
 from .forms import LoginForm,TaskItemForm,TaskMerchantParamsForm,TaskSubmitForm
 from .. import ufile
-from ..misc import get_today, get_hourminsec, unicode2str_r,diff_seconds
+from ..misc import get_today, get_hourminsec, unicode2str_r,diff_seconds,timeint2str
 import os
 import json
 import time
@@ -136,13 +136,14 @@ def task(step = None):
             to_unit   = session['destination']
             task_name = session['item']
             organization = session['organization']
+            level = session['branch']
             task_id   = new_task.id
 #             import uuid
 #             task_id = repr(uuid.uuid1())
             submit_date = now[0]
             submit_time = now[1]
-            task_record = (user_name,from_unit,to_unit,task_name,task_id,organization,submit_date,submit_time)
-            print task_record
+            task_record = (user_name,from_unit,to_unit,task_name,task_id,organization,level,submit_date,submit_time)
+            print 'task_record = ',task_record
             task_client = current_app.task_client
             task_client.insert_listlike(task_client.task_struct, task_record, merge=False)
             ##############################################################################
@@ -162,29 +163,51 @@ def task(step = None):
 
 
 @login_required
-@auth.route('/query', methods=['GET', 'POST'])
-def query():
-    args = {}
-    return render_template('auth/query.html', **args)
-
-
-@login_required
 @auth.route('/submit_successed', methods=['GET', 'POST'])
 def submit_successed():
-    task_client = current_app.task_client
-    user_name = current_user.username
-    cursor = task_client.query_obj(task.task_struct,username = user_name)
-    cols = task_client.get_column_names(task_client.task_struct)
-    print cols
-    for record in cursor:
-        task_id = record['task_id']
-        fileds = [ getattr(record,x) for x in cols ]
     return render_template('auth/submit_successed.html')
 
+###############################################################################################
+@login_required
+@auth.route('/query', methods=['GET', 'POST'])
+def query():
+    task_client = current_app.task_client
+    redis_client = current_app.redis_client
+    user_name = current_user.username
+    ss = task_client.get_session()
+    cursor = ss.query(task_client.task_struct).filter_by(username = user_name)\
+                                                .order_by(task_client.task_struct.submit_date)\
+                                                .order_by(task_client.task_struct.submit_time)\
+                                                .all()
+    ss.close()
+    tbvals = []
+    for record in cursor:
+        task_id = record.task_id
+        task_block = redis_client.get_value_by_id(task_id)
+        task_ok = 0
+        task_status = u'未提交'
+        if task_block is not None:
+            task_status = u'正在执行'
+            if task_block['status'] == 'SUCCESS':
+                task_status = u'执行完成'
+                task_ok = 1
+            else:
+                task_status = u'执行错误'
+        tbvals.append([record.username,record.task_name,record.task_to,record.orgnizition,\
+                        record.level,'-'.join((str(record.submit_date),timeint2str(record.submit_time))),task_status,task_ok,task_id]) 
+    print 'tbvals = ',tbvals
+    return render_template('auth/query.html',tbvals = tbvals)
 
 
-
-
+######################################################################################
+#this is self-defined by module developer
+@login_required
+@auth.route('/query_result/<string:task_id>', methods=['GET', 'POST'])
+def query_result(task_id):
+    redis_client = current_app.redis_client
+    task_block = redis_client.get_value_by_id(task_id)
+    taskvals = json.loads(task_block['result'])['result']
+    return render_template('auth/query_result.html',taskvals = taskvals)
 
 
 
