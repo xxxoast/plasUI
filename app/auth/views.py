@@ -36,6 +36,8 @@ def item_data_dump(cookie,input_form):
     cookie['start_date'],cookie['end_date'],cookie['item'],\
         cookie['destination'],cookie['organization'],cookie['branch'] = start_date, end_date, item, \
             destination, organization,branch
+    print 'item data = ',cookie['start_date'],cookie['end_date'],cookie['item'],\
+        cookie['destination'],cookie['organization'],cookie['branch']
 
 def init_session_params(cookie,task_params_form):
     if cookie['item'] == 'merchant':
@@ -124,7 +126,7 @@ def task(step = None):
     #As task_params_form is a dynamic module... 
     #动态代码一时爽，代码重构...
     try:
-        print 'mode = ', session['item']
+        print session['item']
         task_params_form = module2form[session['item']]()
     except:
         task_params_form = TaskMerchantParamsForm()
@@ -134,6 +136,7 @@ def task(step = None):
         print 'step 2'
         session['step'] = 2
         item_data_dump(session,task_item_form)
+        task_params_form = module2form[session['item']]()
     #3 step
     elif task_params_form.submit_task_params.data and task_params_form.validate_on_submit():
         print 'step 3'
