@@ -19,7 +19,6 @@ class TaskItemForm(FlaskForm):
     
     item  = SelectField(u'检查模块',choices = [('merchant',u'收单商户二清'),\
                                              ('reserve',u'备付金出入金'),\
-                                             ('diff_data',u'数据比对'),\
                                              ('data_request',u'数据请求')],\
                                  default = 'merchant')
     destination = SelectField(u'检查地区',choices = [('beijing',u'北京'),('shanghai',(u'上海')),('shenzhen',(u'深圳'))],\

@@ -121,6 +121,8 @@ def logout():
 def task(step = None):
     #get input form data
     task_item_form,task_submit_form = TaskItemForm(),TaskSubmitForm()
+    #As task_params_form is a dynamic module... 
+    #动态代码一时爽，代码重构...
     try:
         print 'mode = ', session['item']
         task_params_form = module2form[session['item']]()
@@ -132,8 +134,6 @@ def task(step = None):
         print 'step 2'
         session['step'] = 2
         item_data_dump(session,task_item_form)
-        task_params_form = module2form[session['item']]()
-        init_session_params(session,task_params_form)
     #3 step
     elif task_params_form.submit_task_params.data and task_params_form.validate_on_submit():
         print 'step 3'
@@ -185,6 +185,8 @@ def task(step = None):
         except:
             session['step'] = 1
     #inject form as params
+    #As task_params_form is a dynamic module... 
+    init_session_params(session,task_params_form)
     args['task_item_form'],args['task_params_form'],args['task_submit_form'] = \
                     task_item_form,task_params_form,task_submit_form      
     return render_template('auth/task.html', **args)
