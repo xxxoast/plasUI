@@ -1,16 +1,17 @@
 #coding:utf-8 
 from flask import render_template, redirect, request, url_for, flash, session, current_app, jsonify
 from flask_login import login_user, logout_user, login_required, current_user, fresh_login_required
-from sqlalchemy import desc
+from sqlalchemy import desc, func
 from . import auth
 from .. import db
 from ..models import User
 from .forms import module2form,LoginForm,TaskItemForm,TaskMerchantParamsForm,TaskSubmitForm
 from .. import ufile
-from ..misc import get_today, get_hourminsec, unicode2str_r,diff_seconds,timeint2str
+from ..misc import get_today, get_hourminsec, unicode2str_r,diff_seconds,timeint2str,unicode2utf8_r
 import os
 import json
 import time
+from app.misc import unicode2utf8
 
 min_backtest_gap_seconds = 10
 
@@ -217,7 +218,7 @@ def query():
         task_id = record.task_id
         task_block = redis_client.get_value_by_id(task_id)
         task_ok = 0
-        task_status = u'待审核'
+        task_status = u'待审核' if str(task_id) != str('-1') else u'上级拒绝'
         if task_block is not None:
             task_status = u'正在执行'
             if task_block['status'] == 'SUCCESS':
@@ -257,7 +258,7 @@ def query_all_data(from_city = None):
         colnames = task_client.get_column_names(task_client.table_struct)
         for record in cursor:
             new_dict = {colname:getattr(record, colname) for colname in colnames}
-            new_dict['datetime'] = ':'.join((str(new_dict['submit_date']),str(new_dict['submit_time'])))
+            new_dict['datetime'] = '-'.join((str(new_dict['submit_date']),timeint2str(new_dict['submit_time'])))
             new_dict.pop('submit_date')
             new_dict.pop('submit_time')
             tbvals.append(new_dict)
@@ -266,7 +267,43 @@ def query_all_data(from_city = None):
     else:
         return jsonify({})
 
-        
+
+def load_json_data(form):
+    dict_request_form = dict(form)
+    indata_json = {
+        key: dict_request_form[key][0]
+                for key in dict_request_form
+    }['data']
+    indata = unicode2utf8_r(json.loads(indata_json))
+    return indata
+    
+@login_required
+@auth.route('/accept_task', methods=['POST',])
+def accept_task():
+    task_client = current_app.task_client 
+    indata = load_json_data(request.form)
+    for accept in indata:
+        ss = task_client.get_session()
+        primary_key = int(accept[1])
+        record = ss.query(task_client.table_struct).filter_by(index = primary_key).scalar()
+        params = record.params.split('|')
+        new_task = current_app.rpc_client[record.task_name].delay(record.orgnization,*params)
+        record.task_id = new_task.id
+        ss.commit()
+    return jsonify(success=1)       
+
+@login_required
+@auth.route('/deny_task', methods=['POST',])
+def deny_task():
+    task_client = current_app.task_client 
+    indata = load_json_data(request.form)
+    for accept in indata:
+        ss = task_client.get_session()
+        primary_key = int(accept[1])
+        record = ss.query(task_client.table_struct).filter_by(index = primary_key).scalar()
+        record.task_id = "-1"
+        ss.commit()
+    return jsonify(success=1)
 
 ######################################################################################
 #this is self-defined by module developer
