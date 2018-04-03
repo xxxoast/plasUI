@@ -126,7 +126,7 @@ def task(step = None):
     #As task_params_form is a dynamic module... 
     #动态代码一时爽，代码重构...
     try:
-        print session['item']
+        print 'item = ',session['item']
         task_params_form = module2form[session['item']]()
     except:
         task_params_form = TaskMerchantParamsForm()
@@ -181,15 +181,15 @@ def task(step = None):
             return redirect(url_for('auth.submit_successed'))
     #1 step    
     else:
-        print 'step 1'
-        try:
-            if step is not None:
-                session['step'] = step
-        except:
+        if step is not None:
+            session['step'] = step
+        else:
             session['step'] = 1
     #inject form as params
+    #must be put here, because param_vals will be rendered by ref when loading templates,must be inited everytime
     #As task_params_form is a dynamic module... 
     init_session_params(session,task_params_form)
+    print 'step =', session['step']
     args['task_item_form'],args['task_params_form'],args['task_submit_form'] = \
                     task_item_form,task_params_form,task_submit_form      
     return render_template('auth/task.html', **args)
