@@ -2,6 +2,14 @@
 import time
 from pandas import to_datetime
 import socket
+from sqlalchemy import func
+
+def get_current_index(dbapi,**arg_dict):
+    session = dbapi.get_session()
+    current_index = session.query(func.max(dbapi.table_struct.index)).filter_by(**arg_dict).scalar()
+    session.close()
+    return current_index
+    
 
 def get_host_ip():
     try:

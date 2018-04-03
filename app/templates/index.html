@@ -9,8 +9,12 @@
     Welcome {{ current_user.username }}!
     <br><br>
     <ol>
-	&nbsp;<li><a href="{{ url_for('auth.task',step = 1) }}">Submit A New Task</a></li>
-	&nbsp;<li><a href="{{ url_for('auth.query')}}">View History Tasks</a></li>
+	&nbsp;<li><a href="{{ url_for('auth.task',step = 1) }}">新建检查任务</a></li>
+		{% if current_user.username == 'admin' -%}
+			&nbsp;<li><a href="{{ url_for('auth.authorize')}}">审核分支行任务</a></li>
+		{% else %}
+			&nbsp;<li><a href="{{ url_for('auth.query')}}">查看历史任务</a></li>
+		{% endif %}
 	</ol>
     {% else %}
     &nbsp;&nbsp;<a href="{{ url_for('auth.login') }}">Click here to login</a>

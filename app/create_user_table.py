@@ -32,27 +32,29 @@ class Task(dbBase.DB_BASE):
         table_name = 'task'
         super(Task, self).__init__(db_name)
 
-        self.table_struct = Table(table_name, self.meta,
+        self.table_obj = Table(table_name, self.meta,
+                                  Column('index',Integer,primary_key = True,autoincrement = True),
                                   Column('username', String(64)),
                                   Column('task_from', String(64)),
                                   Column('task_to',String(64)),
                                   Column('task_name',String(64)),
-                                  Column('task_id',String(128),primary_key=True),
+                                  Column('task_id',String(128)),
                                   Column('orgnizition',String(128)),
                                   Column('level',String(16)),
                                   Column('submit_date',Integer),
-                                  Column('submit_time',Integer)
+                                  Column('submit_time',Integer),
+                                  Column('params',String(256))
                                   )
 
     def create_table(self):
-        self.task_struct = self.quick_map(self.table_struct)
+        self.table_struct = self.quick_map(self.table_obj)
 
 def create_user_table():
     user = User()
     user.create_table()
     indict = {
-        'id': 1,
-        'username': 'xudi',
+        'id': 2,
+        'username': 'admin',
         'password_hash': generate_password_hash('123456'),
         'work_unit':'pbc'
     }
@@ -64,6 +66,20 @@ def create_task_table():
     task.create_table()
     print 'successed!'
     
+def test_insert():
+    dbapi = Task()
+    dbapi.create_table()
+    d = {i:str(1) for i in dbapi.get_column_names(dbapi.table_struct)}
+    d.pop('index')
+    dbapi.insert_dictlike(dbapi.table_struct,d)
+    a = [None,]
+    a.extend([ i for i in d.values() ])
+    dbapi.insert_listlike(dbapi.table_struct,a)
+
+    
 if __name__ == '__main__':
-    create_task_table()
+#     create_task_table()
+#     test_insert()
+    create_user_table()
+    
     

@@ -1,5 +1,5 @@
 #coding:utf-8 
-from flask import render_template, redirect, request, url_for, flash, session, g, current_app, jsonify
+from flask import render_template, redirect, request, url_for, flash, session, current_app, jsonify
 from flask_login import login_user, logout_user, login_required, current_user, fresh_login_required
 from sqlalchemy import desc
 from . import auth
@@ -51,7 +51,7 @@ def init_session_params(cookie,task_params_form):
 def params_data_dump(cookie,input_form):
     if cookie['item'] == 'merchant':
         param1 = input_form.param1.data
-        param2 = input_form.param1.data
+        param2 = input_form.param2.data
         cookie['params'] = {}
         cookie['params']['param1'] = param1 
         cookie['params']['param2'] = param2 
@@ -88,8 +88,6 @@ def init_session(cookie,force_init = False):
         cookie['params'] = {}
     if force_init or ( 'task_information' not in cookie):
         cookie['task_information'] = ()
-    if force_init or ('param_vals' not in cookie):
-        cookie['param_vals'] = ()
 #     print 'session init =', cookie['last_submit_task'],cookie['step'],cookie['params']
     
 #########################################################################
@@ -142,7 +140,9 @@ def task(step = None):
         print 'step 3'
         session['step'] = 3
         params_data_dump(session, task_params_form)
-        params = '|'.join([ unicode2str_r(v) for v in session['params'].values() ])
+        print session['params']
+        print session['params']
+        params = '|'.join([ unicode2str_r(v) for k,v in sorted(session['params'].items(),key = lambda x:x[0]) ])
         tstamp = ':'.join((str(get_today()),str(get_hourminsec())))
         task_information = (current_user.username,session['item'],session['destination'],\
                             session['organization'],session['branch'],session['start_date'],session['end_date'],\
@@ -159,7 +159,7 @@ def task(step = None):
             session['step'] = 1
             ##As a demo, we only call this module
             #new_task = current_app.rpc_client[session['item']].delay(session['organization'],*session['params'])
-            new_task = current_app.rpc_client['non_certify'].delay('pingan','merchant')
+            #new_task = current_app.rpc_client['non_certify'].delay('pingan','merchant')
             ##Update this history in MYSQL task
             user_name = current_user.username
             user = User.query.filter_by(username=user_name).first()
@@ -168,15 +168,14 @@ def task(step = None):
             task_name = session['item']
             organization = session['organization']
             level = session['branch']
-            task_id   = new_task.id
-#             import uuid
-#             task_id = repr(uuid.uuid1())
+            task_id   = ''
             submit_date = now[0]
             submit_time = now[1]
-            task_record = (user_name,from_unit,to_unit,task_name,task_id,organization,level,submit_date,submit_time)
+            params = '|'.join([ unicode2str_r(v) for k,v in sorted(session['params'].items(),key = lambda x:x[0]) ])
+            task_record = (None,user_name,from_unit,to_unit,task_name,task_id,organization,level,submit_date,submit_time,params)
             print 'task_record = ',task_record
             task_client = current_app.task_client
-            task_client.insert_listlike(task_client.task_struct, task_record, merge=False)
+            task_client.insert_listlike(task_client.table_struct, task_record, merge=False)
             ##############################################################################
             return redirect(url_for('auth.submit_successed'))
     #1 step    
@@ -208,9 +207,9 @@ def query():
     redis_client = current_app.redis_client
     user_name = current_user.username
     ss = task_client.get_session()
-    cursor = ss.query(task_client.task_struct).filter_by(username = user_name)\
-                                                .order_by(desc(task_client.task_struct.submit_date))\
-                                                .order_by(desc(task_client.task_struct.submit_time))\
+    cursor = ss.query(task_client.table_struct).filter_by(username = user_name)\
+                                                .order_by(desc(task_client.table_struct.submit_date))\
+                                                .order_by(desc(task_client.table_struct.submit_time))\
                                                 .all()
     ss.close()
     tbvals = []
@@ -218,11 +217,11 @@ def query():
         task_id = record.task_id
         task_block = redis_client.get_value_by_id(task_id)
         task_ok = 0
-        task_status = u'未提交'
+        task_status = u'待审核'
         if task_block is not None:
             task_status = u'正在执行'
             if task_block['status'] == 'SUCCESS':
-                task_status = u'执行完成'
+                task_status = u'已完成'
                 task_ok = 1
             else:
                 task_status = u'执行错误'
@@ -231,6 +230,43 @@ def query():
     print 'tbvals = ',tbvals
     return render_template('auth/query.html',tbvals = tbvals)
 
+
+####################################################################################
+@login_required
+@auth.route('/authorize', methods=['GET', 'POST'])
+def authorize():
+    return render_template('auth/authorize.html')
+
+
+@login_required
+@auth.route('/query_all_data', methods=['POST','GET'])
+@auth.route('/query_all_data/<string:from_city>', methods=['POST','GET'])
+def query_all_data(from_city = None):
+    user_name = current_user.username
+    if user_name == 'admin':
+        task_client = current_app.task_client
+        user_name = current_user.username
+        ss = task_client.get_session()
+        args = {'from_city':from_city} if from_city else {}
+        cursor = ss.query(task_client.table_struct).filter_by(task_id = '',**args)\
+                                                    .order_by(desc(task_client.table_struct.submit_date))\
+                                                    .order_by(desc(task_client.table_struct.submit_time))\
+                                                    .all()
+        ss.close()
+        tbvals = []
+        colnames = task_client.get_column_names(task_client.table_struct)
+        for record in cursor:
+            new_dict = {colname:getattr(record, colname) for colname in colnames}
+            new_dict['datetime'] = ':'.join((str(new_dict['submit_date']),str(new_dict['submit_time'])))
+            new_dict.pop('submit_date')
+            new_dict.pop('submit_time')
+            tbvals.append(new_dict)
+        print tbvals
+        return jsonify(tbvals)
+    else:
+        return jsonify({})
+
+        
 
 ######################################################################################
 #this is self-defined by module developer
