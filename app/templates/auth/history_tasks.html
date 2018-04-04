@@ -1,7 +1,28 @@
+
+{% if current_user.username == 'admin' -%}
+<div class="row">
+        <div class="col-md-2" >
+        	<h4>请选择地区<h4>
+        </div>
+        <div class="col-md-1" >
+	    	<select id = "query_city_select" class="selectpicker" >
+	    		{% for city in cities -%}
+			  		<option value ="{{ city }}">{{city}}</option>
+				{% endfor %}
+			</select>
+		</div>
+</div>
+{% endif %}
+
 <h4>
-<table data-toggle="table">
+<table data-toggle="table"
+       id="query_result_table"
+       data-pagination="true"
+       data-show-export="true"
+       data-show-refresh="true">
     <thead>
         <tr>
+        	<th>编号</th>
             <th>姓名</th>
             <th>检查任务</th>
             <th>检查地区</th>
@@ -15,6 +36,7 @@
     </tbody>
 		{% for val in tbvals -%}
 		<tr>
+			<td>{{val[9]}}</td>
 			<td>{{val[0]}}</td>
             <td>{{val[1]}}</td>
             <td>{{val[2]}}</td>
@@ -32,3 +54,4 @@
 	</tbody>
 </table>
 </h4>
+

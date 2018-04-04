@@ -31,7 +31,7 @@ ufile = UploadSet('report')
 
 def create_rpc_client():
     rpc_client = {}
-    rpc_client['non_certify'] = non_certify
+    rpc_client['merchant'] = non_certify
     rpc_client['add'] = add
     return rpc_client
 

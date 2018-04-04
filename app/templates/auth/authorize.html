@@ -5,54 +5,59 @@
 <style type="text/css">
 
 </style>
-
+<!--- data-url="{{ url_for('auth.query_all_data') }}" --->
 <div class="page-header">
     <h1>
-    {% if current_user.username == 'admin' -%}    
-    	<select id = "city_select" class="selectpicker" >
-    		{% for city in cities -%}
-		  		<option value ="{{ city }}">{{city}}</option>
-			{% endfor %}
-		</select>	
+    {% if current_user.username == 'admin' -%}
+        <div class="row">
+        	<div class="col-md-2" >
+        		<h4>请选择地区<h4>
+        	</div>
+        	<div class="col-md-1" >
+	    		<select id = "city_select" class="selectpicker" >
+	    			{% for city in cities -%}
+			  			<option value ="{{ city }}">{{city}}</option>
+					{% endfor %}
+				</select>
+			</div>
+		</div>	
 	    <h4>
-		<table data-toggle="table" 
-			   id="authorize_table"
-			   data-toggle="table"
-		       data-pagination="true"
-		       data-show-export="true"
-		       data-show-refresh="true"
-		       data-toolbar="#entry_toolbar"
-		       data-url="{{ url_for('auth.query_all_data') }}"
-		>
-	    <thead>
-	        <tr>
-	        	<th data-field="state" data-checkbox="true"></th>
-	        	<th data-field="index" data-checkbox="true" class="hidden">index</th>
-	        	<th data-field="username"  data-editable="false">username</th>
-	            <th data-field="task_from" data-editable="false">task_from</th>
-	            <th data-field="task_to" data-editable="false">task_to</th>
-	            <th data-field="task_name" data-editable="false">task_name</th>
-	            <th data-field="task_id" data-editable="false" class="hidden">task_id</th>
-	            <th data-field="orgnizition" data-editable="false">orgnizition</th>
-	            <th data-field="level" data-editable="false">level</th>
-	            <th data-field="datetime" data-editable="false">datetime</th>
-	            <th data-field="params" data-editable="false">params</th>
-	        </tr>
-	    </thead>
-		</table>
+			<table data-toggle="table" 
+				   id="authorize_table"
+				   data-toggle="table"
+			       data-pagination="true"
+			       data-show-export="true"
+			       data-show-refresh="true"
+			>
+		    <thead>
+		        <tr>
+		        	<th data-field="state" data-checkbox="true"></th>
+		        	<th data-field="index" data-editable="false">index</th>
+		        	<th data-field="username"  data-editable="false">username</th>
+		            <th data-field="task_from" data-editable="false">task_from</th>
+		            <th data-field="task_to" data-editable="false">task_to</th>
+		            <th data-field="task_name" data-editable="false">task_name</th>
+		            <th data-field="task_id" data-editable="false" class="hidden">task_id</th>
+		            <th data-field="orgnization" data-editable="false">orgnization</th>
+		            <th data-field="level" data-editable="false">level</th>
+		            <th data-field="datetime" data-editable="false">datetime</th>
+		            <th data-field="params" data-editable="false">params</th>
+		        </tr>
+		    </thead>
+			</table>
 		</h4>
 		<h3>
-		<div class="row">
-			<div class="col-md-1 col-md-offset-9" >
-				<h3><a id = "accept_task_btn"  class="btn btn-success" role="button">审核通过</a>
+			<div class="row">
+				<div class="col-md-1 col-md-offset-9" >
+					<h3><a id = "accept_task_btn"  class="btn btn-success" role="button">审核通过</a>
+				</div>
+				<div class="col-md-1" >
+					<h3><a id = "deny_task_btn" class="btn btn-danger" role="button">审核拒绝</a>
+				</div>
 			</div>
-			<div class="col-md-1" >
-				<h3><a id = "deny_task_btn" class="btn btn-danger" role="button">审核拒绝</a>
-			</div>
-		</div>
 		</h3>
 	{% else %}
-			{{ url_for('main.index') }}
+		Not authorized!
     {% endif %}
     </h1>
 </div>
@@ -63,9 +68,17 @@
 {{ super() }}
 <script>
 
-$(document).ready(function(){	
-		
-});
+	$(document).ready(function(){	
+		var city = city_select.selectpicker('val');
+    	console.log('city = ' + city);
+		if(typeof(city) == "undefined")
+			city = "all";
+		var opt = {
+	        url: $SCRIPT_ROOT + '/auth/query_all_data/' + city + '/',
+	        silent: true
+		};
+    	authorize_table.bootstrapTable('refresh',opt);
+	});
 
 </script>
 {% endblock %}

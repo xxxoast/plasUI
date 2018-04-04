@@ -5,11 +5,13 @@ pkg_path = os.path.sep.join(
     (os.path.abspath(os.curdir).split(os.path.sep)[:-2]))
 if pkg_path not in sys.path:
     sys.path.append(pkg_path)
+
 from future_mysql import dbBase
+from pbc_crawler import db_api as city_table_api
 from sqlalchemy import Column, Integer, String, DateTime, Numeric, Index, Float, Boolean
 from sqlalchemy import Table
 
-from pbc_crawler.db_api import get_cities
+get_cities = city_table_api.get_cities
 
 class User(dbBase.DB_BASE):
 
@@ -41,7 +43,7 @@ class Task(dbBase.DB_BASE):
                                   Column('task_to',String(64)),
                                   Column('task_name',String(64)),
                                   Column('task_id',String(128)),
-                                  Column('orgnizition',String(128)),
+                                  Column('orgnization',String(128)),
                                   Column('level',String(16)),
                                   Column('submit_date',Integer),
                                   Column('submit_time',Integer),
@@ -55,10 +57,10 @@ def create_user_table():
     user = User()
     user.create_table()
     indict = {
-        'id': 2,
-        'username': 'admin',
+        'id': 3,
+        'username': 'lyx',
         'password_hash': generate_password_hash('123456'),
-        'work_unit':'pbc'
+        'work_unit':'beijing'
     }
     user.insert_dictlike(user.user_struct, indict)
     print 'successed!'

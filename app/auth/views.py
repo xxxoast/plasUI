@@ -1,7 +1,7 @@
 #coding:utf-8 
 from flask import render_template, redirect, request, url_for, flash, session, current_app, jsonify
 from flask_login import login_user, logout_user, login_required, current_user, fresh_login_required
-from sqlalchemy import desc, func
+from sqlalchemy import desc, asc, func
 from . import auth
 from .. import db
 from ..models import User
@@ -15,7 +15,8 @@ import time
 from app.misc import unicode2utf8
 
 min_backtest_gap_seconds = 10
-cities = get_cities()
+cities = ['all','super']
+cities.extend(get_cities())
 
 #########################################################################
 ''' misc '''
@@ -91,6 +92,8 @@ def init_session(cookie,force_init = False):
         cookie['params'] = {}
     if force_init or ( 'task_information' not in cookie):
         cookie['task_information'] = ()
+    if force_init or ( 'item' not in cookie):
+        cookie['item'] = 'merchant'
 #     print 'session init =', cookie['last_submit_task'],cookie['step'],cookie['params']
     
 #########################################################################
@@ -205,12 +208,19 @@ def submit_successed():
 ###############################################################################################
 @login_required
 @auth.route('/query', methods=['GET', 'POST'])
-def query():
+@auth.route('/query/<string:from_city>/', methods=['GET', 'POST'])
+def query(from_city = None):
     task_client = current_app.task_client
     redis_client = current_app.redis_client
     user_name = current_user.username
+    #非admin不能筛选城市
+    if user_name != 'admin' and from_city is not None:
+        return redirect(url_for('main.index'))
     ss = task_client.get_session()
-    cursor = ss.query(task_client.table_struct).filter_by(username = user_name)\
+    filter_dict = {'username':user_name} if user_name != 'admin' else {}
+    if ( from_city is not None ) and ( from_city != 'all' ):
+        filter_dict['task_from'] = from_city
+    cursor = ss.query(task_client.table_struct).filter_by(**filter_dict)\
                                                 .order_by(desc(task_client.table_struct.submit_date))\
                                                 .order_by(desc(task_client.table_struct.submit_time))\
                                                 .all()
@@ -228,11 +238,22 @@ def query():
                 task_ok = 1
             else:
                 task_status = u'执行错误'
-        tbvals.append([record.username,record.task_name,record.task_to,record.orgnizition,\
-                        record.level,'-'.join((str(record.submit_date),timeint2str(record.submit_time))),task_status,task_ok,task_id]) 
-    print 'tbvals = ',tbvals
-    return render_template('auth/query.html',tbvals = tbvals)
+        tbvals.append([record.username,record.task_name,record.task_to,record.orgnization,\
+                        record.level,'-'.join((str(record.submit_date),timeint2str(record.submit_time))),\
+                        task_status,task_ok,task_id,int(record.index)]) 
+#     print 'tbvals = ',tbvals
+    selected_city = from_city if from_city is not None else 'all'
+    return render_template('auth/query.html',tbvals = tbvals,cities = cities,selected_city = selected_city)
+#         return jsonify(tbvals)
 
+#this is self-defined by module developer
+@login_required
+@auth.route('/query_result/<string:task_id>', methods=['GET', 'POST'])
+def query_result(task_id):
+    redis_client = current_app.redis_client
+    task_block = redis_client.get_value_by_id(task_id)
+    taskvals = json.loads(task_block['result'])['result']
+    return render_template('auth/query_result.html',taskvals = taskvals)
 
 ####################################################################################
 @login_required
@@ -243,17 +264,17 @@ def authorize():
 
 @login_required
 @auth.route('/query_all_data', methods=['POST','GET'])
-@auth.route('/query_all_data/<string:from_city>', methods=['POST','GET'])
+@auth.route('/query_all_data/<string:from_city>/', methods=['POST','GET'])
 def query_all_data(from_city = None):
     user_name = current_user.username
     if user_name == 'admin':
         task_client = current_app.task_client
         user_name = current_user.username
         ss = task_client.get_session()
-        args = {'from_city':from_city} if from_city else {}
+        args = {'task_from':from_city} if from_city and from_city != 'all' else {}
         cursor = ss.query(task_client.table_struct).filter_by(task_id = '',**args)\
-                                                    .order_by(desc(task_client.table_struct.submit_date))\
-                                                    .order_by(desc(task_client.table_struct.submit_time))\
+                                                    .order_by(asc(task_client.table_struct.submit_date))\
+                                                    .order_by(asc(task_client.table_struct.submit_time))\
                                                     .all()
         ss.close()
         tbvals = []
@@ -264,7 +285,6 @@ def query_all_data(from_city = None):
             new_dict.pop('submit_date')
             new_dict.pop('submit_time')
             tbvals.append(new_dict)
-        print tbvals
         return jsonify(tbvals)
     else:
         return jsonify({})
@@ -288,10 +308,12 @@ def accept_task():
         ss = task_client.get_session()
         record = ss.query(task_client.table_struct).filter_by(index = primary_key).scalar()
         params = record.params.split('|')
-        new_task = current_app.rpc_client[record.task_name].delay(record.orgnization,*params)
+#         new_task = current_app.rpc_client[record.task_name].delay(record.orgnization,*params)
+        new_task = current_app.rpc_client[record.task_name].delay('pingan','merchant')
         record.task_id = new_task.id
+        print 'record.task_id = ',record.task_id
         ss.commit()
-    return jsonify(success=1)       
+    return jsonify(success="status")       
 
 @login_required
 @auth.route('/deny_task', methods=['POST',])
@@ -303,17 +325,9 @@ def deny_task():
         record = ss.query(task_client.table_struct).filter_by(index = primary_key).scalar()
         record.task_id = "-1"
         ss.commit()
-    return jsonify(success=1)
+    return jsonify(success="status")
 
 ######################################################################################
-#this is self-defined by module developer
-@login_required
-@auth.route('/query_result/<string:task_id>', methods=['GET', 'POST'])
-def query_result(task_id):
-    redis_client = current_app.redis_client
-    task_block = redis_client.get_value_by_id(task_id)
-    taskvals = json.loads(task_block['result'])['result']
-    return render_template('auth/query_result.html',taskvals = taskvals)
 
 
 
