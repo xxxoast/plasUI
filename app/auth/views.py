@@ -5,6 +5,7 @@ from sqlalchemy import desc, func
 from . import auth
 from .. import db
 from ..models import User
+from ..create_user_table import get_cities
 from .forms import module2form,LoginForm,TaskItemForm,TaskMerchantParamsForm,TaskSubmitForm
 from .. import ufile
 from ..misc import get_today, get_hourminsec, unicode2str_r,diff_seconds,timeint2str,unicode2utf8_r
@@ -14,6 +15,7 @@ import time
 from app.misc import unicode2utf8
 
 min_backtest_gap_seconds = 10
+cities = get_cities()
 
 #########################################################################
 ''' misc '''
@@ -236,7 +238,7 @@ def query():
 @login_required
 @auth.route('/authorize', methods=['GET', 'POST'])
 def authorize():
-    return render_template('auth/authorize.html')
+    return render_template('auth/authorize.html',cities = cities)
 
 
 @login_required
@@ -282,9 +284,8 @@ def load_json_data(form):
 def accept_task():
     task_client = current_app.task_client 
     indata = load_json_data(request.form)
-    for accept in indata:
+    for primary_key in indata:
         ss = task_client.get_session()
-        primary_key = int(accept[1])
         record = ss.query(task_client.table_struct).filter_by(index = primary_key).scalar()
         params = record.params.split('|')
         new_task = current_app.rpc_client[record.task_name].delay(record.orgnization,*params)
@@ -297,9 +298,8 @@ def accept_task():
 def deny_task():
     task_client = current_app.task_client 
     indata = load_json_data(request.form)
-    for accept in indata:
+    for primary_key in indata:
         ss = task_client.get_session()
-        primary_key = int(accept[1])
         record = ss.query(task_client.table_struct).filter_by(index = primary_key).scalar()
         record.task_id = "-1"
         ss.commit()

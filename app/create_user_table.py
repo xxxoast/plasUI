@@ -9,6 +9,8 @@ from future_mysql import dbBase
 from sqlalchemy import Column, Integer, String, DateTime, Numeric, Index, Float, Boolean
 from sqlalchemy import Table
 
+from pbc_crawler.db_api import get_cities
+
 class User(dbBase.DB_BASE):
 
     def __init__(self):
