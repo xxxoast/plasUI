@@ -21,6 +21,7 @@ function submit_table(data,tar_url){
         dataType: "json",
        	async: true,
         success: function (data, status) {
+        	//var JsonObjs = $.parseJSON(data); 
             if (status == "success") {
                 console.log("Success");
             }
