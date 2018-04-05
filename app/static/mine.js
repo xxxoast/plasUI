@@ -17,13 +17,15 @@ function submit_table(data,tar_url){
   	$.ajax({
   		type:"POST",
         url: tar_url,
+        // send type is json, should be parsed in backend
         data: { data : json_data },
         dataType: "json",
        	async: true,
         success: function (data, status) {
-        	//var JsonObjs = $.parseJSON(data); 
+        	// returned type is json, has been parsed
+        	//console.log("datatype = " + typeof(data));
             if (status == "success") {
-                console.log("Success");
+                console.log("status = " + data.success);
             }
         },
         error: function () {

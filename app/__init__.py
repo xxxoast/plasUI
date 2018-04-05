@@ -69,12 +69,11 @@ def create_app(config_name):
     setattr(app,'task_client',task_client)
     
     #create redis client
-#     if get_host_ip() == '120.24.189.82':
-#         redis_client = get_remote_handler()
-#     else:
-#         redis_client = get_local_handler()
-    
-    redis_client = get_local_handler()
+    if get_host_ip() == '120.24.189.82':
+        redis_client = get_remote_handler()
+    else:
+        redis_client = get_local_handler()
+
     setattr(app,'redis_client',redis_client)
     return app
 

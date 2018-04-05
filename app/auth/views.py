@@ -296,6 +296,7 @@ def load_json_data(form):
         key: dict_request_form[key][0]
                 for key in dict_request_form
     }['data']
+    # ajax always send json
     indata = unicode2utf8_r(json.loads(indata_json))
     return indata
     
@@ -313,7 +314,7 @@ def accept_task():
         record.task_id = new_task.id
         print 'record.task_id = ',record.task_id
         ss.commit()
-    return jsonify(success="status")       
+    return jsonify(success=1)       
 
 @login_required
 @auth.route('/deny_task', methods=['POST',])
@@ -325,7 +326,7 @@ def deny_task():
         record = ss.query(task_client.table_struct).filter_by(index = primary_key).scalar()
         record.task_id = "-1"
         ss.commit()
-    return jsonify(success="status")
+    return jsonify(success=1)
 
 ######################################################################################
 
