@@ -7,7 +7,8 @@ import json
 
 @main.route('/')
 def index():
-    return render_template('index.html')
+    return render_template('resume.html')
+#     return render_template('index.html')
 
 @main.route('/me')
 def me():
